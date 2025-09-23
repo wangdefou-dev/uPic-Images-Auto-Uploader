@@ -18,7 +18,7 @@ export class SettingsManager {
 	 */
 	async loadSettings(): Promise<PluginSettings> {
 		try {
-			console.log('🔄 Loading uPic settings...');
+			// Loading settings - removed console.log to reduce console pollution
 			const data = await this.plugin.loadData();
 			
 			if (data && typeof data === 'object') {
@@ -31,7 +31,7 @@ export class SettingsManager {
 				
 				// 验证设置的有效性
 				this.validateSettings();
-				console.log('✅ Settings loaded and validated:', this.settings);
+				// Settings loaded - removed console.log to reduce console pollution
 			} else {
 				console.log('📋 No existing settings found, using defaults');
 				// 如果没有保存的数据，使用默认设置
@@ -69,7 +69,7 @@ export class SettingsManager {
 	 */
 	async saveSettings(newSettings?: Partial<PluginSettings>): Promise<void> {
 		try {
-			console.log('💾 Saving uPic settings...');
+			// Saving settings - removed console.log to reduce console pollution
 			
 			if (newSettings) {
 				console.log('📝 Applying setting updates:', newSettings);
@@ -93,7 +93,7 @@ export class SettingsManager {
 			
 			// 保存到文件
 			await this.plugin.saveData(this.settings);
-			console.log('✅ Settings saved successfully:', this.settings);
+			// Settings saved - removed console.log to reduce console pollution
 			
 			// Verify the save by attempting to read back
 			try {

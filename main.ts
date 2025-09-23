@@ -1,5 +1,4 @@
-import { Plugin, Editor, MarkdownView, MarkdownFileInfo, Notice } from 'obsidian';
-import { tmpdir } from 'os';
+import { Plugin, Editor, MarkdownView, MarkdownFileInfo, Notice, Platform, FileSystemAdapter } from 'obsidian';
 import { join } from 'path';
 import { writeFile, unlink } from 'fs/promises';
 import { UPicUploader } from './src/upic-uploader';
@@ -13,7 +12,7 @@ export class UPicAutoUploaderPlugin extends Plugin {
 	private settings!: PluginSettings;
 
 	async onload() {
-		console.log('Loading uPic Auto Uploader plugin');
+		// Plugin loading - removed console.log to reduce console pollution
 
 		// 初始化设置管理器
 		this.settingsManager = new SettingsManager(this.app, this);
@@ -36,7 +35,7 @@ export class UPicAutoUploaderPlugin extends Plugin {
 	}
 
 	async onunload() {
-		console.log('Unloading uPic Auto Uploader plugin');
+		// Plugin unloading - removed console.log to reduce console pollution
 	}
 
 	/**
@@ -277,37 +276,22 @@ export class UPicAutoUploaderPlugin extends Plugin {
 	 */
 	private async handleDropEvent(evt: DragEvent, editor: Editor): Promise<void> {
 		try {
-			console.log('🎯 Drop event detected', {
-				timestamp: new Date().toISOString(),
-				eventType: evt.type,
-				dataTransfer: !!evt.dataTransfer,
-				filesCount: evt.dataTransfer?.files?.length || 0
-			});
+			// Drop event detected - removed console.log to reduce console pollution
 			
 			if (!evt.dataTransfer?.files?.length) {
-				console.log('❌ No files in drop event', {
-					dataTransfer: !!evt.dataTransfer,
-					files: evt.dataTransfer?.files,
-					filesLength: evt.dataTransfer?.files?.length
-				});
+				// No files in drop event - removed console.log to reduce console pollution
 				return;
 			}
 			
 			const allFiles = Array.from(evt.dataTransfer.files);
-			console.log('📁 All dropped files:', allFiles.map(f => ({
-				name: f.name,
-				type: f.type,
-				size: f.size,
-				lastModified: f.lastModified,
-				isImage: f.type.startsWith('image/')
-			})));
+			// All dropped files logged - removed console.log to reduce console pollution
 			
 			const imageFiles = allFiles.filter(file => 
 				SUPPORTED_IMAGE_TYPES.includes(file.type)
 			);
 
 			if (imageFiles.length === 0) {
-				console.log('⏭️ No supported image files found');
+				// No supported image files found - removed console.log to reduce console pollution
 				return;
 			}
 
@@ -316,18 +300,12 @@ export class UPicAutoUploaderPlugin extends Plugin {
 
 			// 处理图片上传 - 使用改进的处理逻辑
 			for (const file of imageFiles) {
-				console.log('🖼️ Processing image file:', {
-					name: file.name,
-					type: file.type,
-					size: file.size,
-					lastModified: new Date(file.lastModified).toISOString(),
-					processingMethod: 'processDroppedImageFileFixed'
-				});
+				// Processing image file - removed console.log to reduce console pollution
 				
 				await this.processDroppedImageFileFixed(file, editor, evt);
 			}
 			
-			console.log('✅ Drop event processing completed');
+			// Drop event processing completed - removed console.log to reduce console pollution
 			
 		} catch (error) {
 			console.error('❌ Error handling drop event:', {
@@ -344,8 +322,12 @@ export class UPicAutoUploaderPlugin extends Plugin {
 	 */
 	private async processImageFile(file: File, editor: Editor): Promise<void> {
 		try {
-			// 创建临时文件
-			const tempFilePath = await this.createTempFile(file);
+			// 创建临时文件 - 仅在桌面端可用
+		if (!Platform.isDesktop) {
+			new Notice('Image upload is only available on desktop');
+			return;
+		}
+		const tempFilePath = await this.createTempFile(file);
 
 			// 上传图片
 			const result = await this.uploader.uploadFile(tempFilePath);
@@ -394,14 +376,14 @@ export class UPicAutoUploaderPlugin extends Plugin {
 	 */
 	private async processDroppedImageFileFixed(file: File, editor: Editor, evt: DragEvent): Promise<void> {
 		try {
-			console.log('🔄 Processing dropped image file (fixed method):', file.name);
+			// Processing dropped image file - removed console.log to reduce console pollution
 			
 			// 获取真实的文件路径
 			const realFilePath = await this.getRealFilePath(file, evt);
-			console.log('📁 Real file path detected:', realFilePath);
+			// Real file path detected - removed console.log to reduce console pollution
 			
 			// 检查是否是从仓库外部拖拽的文件
-			const vaultPath = (this.app.vault.adapter as any).basePath || '';
+			const vaultPath = this.app.vault.adapter instanceof FileSystemAdapter ? (this.app.vault.adapter as any).basePath || '' : '';
 			const isExternalFile = realFilePath && !realFilePath.startsWith(vaultPath);
 			
 			// 创建仓库内的副本路径（用于显示）
@@ -412,14 +394,14 @@ export class UPicAutoUploaderPlugin extends Plugin {
 			// 先插入本地链接（显示仓库内路径）
 			const localImageMarkdown = `![${file.name}](${fileName})`; // 使用相对路径
 			editor.replaceSelection(localImageMarkdown);
-			console.log('📝 Inserted local image link:', localImageMarkdown);
+			// Inserted local image link - removed console.log to reduce console pollution
 			
 			// 如果是外部文件，复制到仓库根目录
 			if (isExternalFile && realFilePath) {
 				try {
 					const fs = require('fs').promises;
 					await fs.copyFile(realFilePath, vaultCopyPath);
-					console.log('📋 Copied external file to vault:', vaultCopyPath);
+					// Copied external file to vault - removed console.log to reduce console pollution
 				} catch (copyError) {
 					console.error('❌ Failed to copy file to vault:', copyError);
 				}
@@ -430,7 +412,7 @@ export class UPicAutoUploaderPlugin extends Plugin {
 			
 			// 创建临时文件用于上传
 			const tempFilePath = await this.createTempFile(file);
-			console.log('📄 Created temp file for upload:', tempFilePath);
+			// Created temp file for upload - removed console.log to reduce console pollution
 			
 			// 上传图片
 			const result = await this.uploader.uploadFile(tempFilePath);
@@ -492,16 +474,16 @@ export class UPicAutoUploaderPlugin extends Plugin {
 	private async getRealFilePath(file: File, evt: DragEvent): Promise<string | null> {
 		try {
 			// 方法1: 检查File对象的path属性（Electron环境）
-			const fileAny = file as any;
-			if (fileAny.path) {
-				console.log('📁 Found file path via file.path:', fileAny.path);
-				return fileAny.path;
+			// Try to get file path from File object properties
+			if ('path' in file && typeof (file as any).path === 'string') {
+				console.log('📁 Found file path via file.path:', (file as any).path);
+				return (file as any).path;
 			}
 			
 			// 方法2: 检查webkitRelativePath
-			if (fileAny.webkitRelativePath) {
-				console.log('📁 Found file path via webkitRelativePath:', fileAny.webkitRelativePath);
-				return fileAny.webkitRelativePath;
+			if ('webkitRelativePath' in file && typeof (file as any).webkitRelativePath === 'string' && (file as any).webkitRelativePath) {
+				// Found file path via webkitRelativePath - removed console.log to reduce console pollution
+				return (file as any).webkitRelativePath;
 			}
 			
 			// 方法3: 通过DataTransfer检查
@@ -509,11 +491,11 @@ export class UPicAutoUploaderPlugin extends Plugin {
 				for (let i = 0; i < evt.dataTransfer.items.length; i++) {
 					const item = evt.dataTransfer.items[i];
 					if (item.kind === 'file') {
-						const itemAny = item as any;
-						if (itemAny.webkitGetAsEntry) {
-							const entry = itemAny.webkitGetAsEntry();
-							if (entry && entry.fullPath) {
-								console.log('📁 Found file path via webkitGetAsEntry:', entry.fullPath);
+						// Check if item has webkitGetAsEntry method (DataTransferItem)
+						if ('webkitGetAsEntry' in item && typeof (item as any).webkitGetAsEntry === 'function') {
+							const entry = (item as any).webkitGetAsEntry();
+							if (entry && 'fullPath' in entry && typeof entry.fullPath === 'string') {
+								// Found file path via webkitGetAsEntry - removed console.log to reduce console pollution
 								return entry.fullPath;
 							}
 						}
@@ -526,8 +508,11 @@ export class UPicAutoUploaderPlugin extends Plugin {
 				// 这可能是一个真实的文件，但我们无法获取路径
 				// 在这种情况下，我们假设它在当前工作目录或用户桌面
 				const possiblePaths = [
-					`/Users/${require('os').userInfo().username}/Desktop/${file.name}`,
-					`/Users/${require('os').userInfo().username}/Downloads/${file.name}`,
+					// Use Platform.isDesktop to check if desktop-specific paths are available
+					...(Platform.isDesktop ? [
+						`${require('os').homedir()}/Desktop/${file.name}`,
+						`${require('os').homedir()}/Downloads/${file.name}`
+					] : []),
 					`./${file.name}` // 当前目录
 				];
 				
@@ -561,10 +546,10 @@ export class UPicAutoUploaderPlugin extends Plugin {
 	 */
 	private async deleteVaultCopyFile(vaultCopyPath: string, fileName: string): Promise<boolean> {
 		try {
-			console.log('🗑️ Attempting to delete vault copy file:', vaultCopyPath);
+			// Attempting to delete vault copy file - removed console.log to reduce console pollution
 			
 			// 安全检查：确保只删除仓库内的文件
-			const vaultPath = (this.app.vault.adapter as any).basePath || '';
+			const vaultPath = this.app.vault.adapter instanceof FileSystemAdapter ? (this.app.vault.adapter as any).basePath || '' : '';
 			if (!vaultPath || !vaultCopyPath.startsWith(vaultPath)) {
 				console.warn('⚠️ Refusing to delete file outside vault:', vaultCopyPath);
 				return false;
@@ -639,7 +624,7 @@ export class UPicAutoUploaderPlugin extends Plugin {
 		const paths: string[] = [];
 		const { basename, join, isAbsolute, resolve } = require('path');
 		const fileName = basename(originalPath);
-		const vaultPath = (this.app.vault.adapter as any).basePath || '';
+		const vaultPath = this.app.vault.adapter instanceof FileSystemAdapter ? (this.app.vault.adapter as any).basePath || '' : '';
 		
 		// 1. 原始路径
 		paths.push(originalPath);
@@ -676,7 +661,7 @@ export class UPicAutoUploaderPlugin extends Plugin {
 	 */
 	private async processDroppedImageFileNew(file: File, editor: Editor): Promise<void> {
 		try {
-			console.log('🔄 Processing dropped image file (new method):', file.name);
+			// Processing dropped image file (new method) - removed console.log to reduce console pollution
 			
 			// 检查是否是从本地文件系统拖拽的文件
 			const fileAny = file as any;
@@ -697,7 +682,7 @@ export class UPicAutoUploaderPlugin extends Plugin {
 			// 先插入本地图片链接
 			const localImageMarkdown = `![${file.name}](${localImagePath})`;
 			editor.replaceSelection(localImageMarkdown);
-			console.log('📝 Inserted local image link:', localImageMarkdown);
+			// Inserted local image link - removed console.log to reduce console pollution
 			
 			// 显示上传进度提示
 			const uploadingNotice = new Notice(`Uploading ${file.name}...`, 0);
@@ -881,10 +866,13 @@ export class UPicAutoUploaderPlugin extends Plugin {
 	 * 创建临时文件 - 保持原始文件名以确保uPic使用正确的文件名
 	 */
 	private async createTempFile(file: File): Promise<string> {
+		if (!Platform.isDesktop) {
+			throw new Error('Temporary file creation is only available on desktop');
+		}
 		const buffer = await file.arrayBuffer();
 		const uint8Array = new Uint8Array(buffer);
 		
-		const tempDir = tmpdir();
+		const tempDir = require('os').tmpdir();
 		// 保持原始文件名，只在必要时添加时间戳避免冲突
 		let fileName = file.name;
 		let tempFilePath = join(tempDir, fileName);
@@ -915,6 +903,10 @@ export class UPicAutoUploaderPlugin extends Plugin {
 	 * 删除临时文件
 	 */
 	private async deleteTempFile(filePath: string): Promise<void> {
+		if (!Platform.isDesktop) {
+			console.warn('File deletion is only available on desktop');
+			return;
+		}
 		try {
 			await unlink(filePath);
 		} catch (error) {

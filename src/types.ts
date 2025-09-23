@@ -1,3 +1,10 @@
+/**
+ * uPic Auto Uploader Plugin Types
+ * 定义插件使用的所有类型接口
+ */
+
+import { Editor } from 'obsidian';
+
 export interface PluginSettings {
 	/** uPic 应用程序路径 */
 	upicPath: string;
@@ -41,7 +48,7 @@ export interface PasteEvent {
 	/** 粘贴事件的原始对象 */
 	originalEvent: ClipboardEvent;
 	/** 当前编辑器实例 */
-	editor: any;
+	editor: Editor;
 }
 
 export interface UPicCommand {

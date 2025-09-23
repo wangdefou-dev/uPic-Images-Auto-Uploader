@@ -3,13 +3,13 @@ import { promisify } from 'util';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
-import { Notice } from 'obsidian';
+import { Notice, Platform, Plugin } from 'obsidian';
 import { PluginSettings, UploadResult, FileInfo } from './types';
 
 const execAsync = promisify(exec);
 
 export class UPicUploader {
-	private plugin: any; // 临时使用any类型，避免循环依赖
+	private plugin: Plugin; // Plugin instance for accessing app and vault
 	private settings: PluginSettings;
 	private detectedUpicPath: string | null = null;
 	private lastCheckTime: number = 0;
@@ -17,7 +17,7 @@ export class UPicUploader {
 	private availabilityCache: Map<string, { available: boolean; timestamp: number }> = new Map();
 	private cacheTimeout: number = 60000; // 缓存1分钟
 
-	constructor(plugin: any, settings: PluginSettings) {
+	constructor(plugin: Plugin, settings: PluginSettings) {
 		this.plugin = plugin;
 		this.settings = settings;
 		// 启动定期检查
@@ -30,6 +30,15 @@ export class UPicUploader {
 	 * @returns 上传结果
 	 */
 	async uploadFile(filePath: string): Promise<UploadResult> {
+		// 检查是否在桌面端
+		if (!Platform.isDesktop) {
+			return {
+				success: false,
+				error: 'File upload is only available on desktop platforms',
+				originalPath: filePath
+			};
+		}
+		
 		let availableUpicPath: string | null = null;
 		try {
 			// 获取可用的 uPic 路径
@@ -193,19 +202,19 @@ export class UPicUploader {
 	 * @returns 检测到的 uPic 路径数组
 	 */
 	private async detectUPicPath(): Promise<string[]> {
-		console.log('🔍 Starting enhanced uPic path detection...');
+		// Starting enhanced uPic path detection - removed console.log to reduce console pollution
 		
 		// First check user configured path
 		if (this.settings.upicPath && this.settings.upicPath.trim()) {
-			console.log(`📋 Checking user configured path: ${this.settings.upicPath}`);
+			// Checking user configured path - removed console.log to reduce console pollution
 			const expandedPath = this.expandPath(this.settings.upicPath);
 			if (await this.testUPicPath(expandedPath)) {
-				console.log(`✅ User configured path is valid: ${expandedPath}`);
+				// User configured path is valid - removed console.log to reduce console pollution
 				return [expandedPath];
 			}
-			console.log(`❌ User configured path is invalid: ${expandedPath}`);
+			// User configured path is invalid - removed console.log to reduce console pollution
 		} else {
-			console.log('📋 No user configured path found');
+			// No user configured path found - removed console.log to reduce console pollution
 		}
 
 		// Enhanced common installation paths with more variations
@@ -222,33 +231,33 @@ export class UPicUploader {
 			'/Users/' + require('os').userInfo().username + '/Applications/uPic.app/Contents/MacOS/uPic'
 		];
 
-		console.log('📍 Checking enhanced common installation paths...');
+		// Checking enhanced common installation paths - removed console.log to reduce console pollution
 		for (const path of commonPaths) {
 			const expandedPath = this.expandPath(path);
-			console.log(`🔍 Testing common path: ${expandedPath}`);
+			// Testing common path - removed console.log to reduce console pollution
 			if (await this.testUPicPath(expandedPath)) {
-				console.log(`✅ Found valid uPic at common path: ${expandedPath}`);
+				// Found valid uPic at common path - removed console.log to reduce console pollution
 				return [expandedPath];
 			}
 		}
 
 		// Try multiple which/whereis commands
-		console.log('🔍 Trying system path detection commands...');
+		// Trying system path detection commands - removed console.log to reduce console pollution
 		const pathCommands = ['which upic', 'whereis upic', 'type -p upic'];
 		
 		for (const cmd of pathCommands) {
 			try {
-				console.log(`🔍 Running: ${cmd}`);
+				// Running command - removed console.log to reduce console pollution
 				const { stdout } = await execAsync(cmd, { timeout: 5000 });
 				const detectedPath = stdout.trim().split('\n')[0]; // Take first result
 				console.log(`📍 ${cmd} result: ${detectedPath}`);
 				
 				if (detectedPath && detectedPath !== 'upic not found' && await this.testUPicPath(detectedPath)) {
-					console.log(`✅ Found valid uPic via ${cmd}: ${detectedPath}`);
+					// Found uPic via system command - removed console.log to reduce console pollution
 					return [detectedPath];
 				}
 			} catch (error) {
-				console.log(`❌ ${cmd} failed: ${error}`);
+				// Command failed or returned invalid path - removed console.log to reduce console pollution
 			}
 		}
 
@@ -260,9 +269,9 @@ export class UPicUploader {
 			
 			for (const dir of pathDirs) {
 				const upicPath = require('path').join(dir, 'upic');
-				console.log(`🔍 Testing PATH directory: ${upicPath}`);
+				// Testing uPic path - removed console.log to reduce console pollution
 				if (await this.testUPicPath(upicPath)) {
-					console.log(`✅ Found valid uPic in PATH: ${upicPath}`);
+					// uPic test successful - removed console.log to reduce console pollution
 					return [upicPath];
 				}
 			}
@@ -270,7 +279,7 @@ export class UPicUploader {
 			console.log(`❌ PATH search failed: ${error}`);
 		}
 
-		console.log('❌ uPic not found in any location after comprehensive search');
+		// No valid uPic installation found - removed console.log to reduce console pollution
 		return [];
 	}
 
@@ -366,12 +375,14 @@ export class UPicUploader {
 					return true;
 				}
 				
-			} catch (cmdError: any) {
-				console.log(`⚠️ Test command ${flag} failed: ${cmdError.message}`);
-				
-				// 对于uPic，即使命令失败也可能是有效的（比如缺少参数）
-				if (cmdError.message) {
-					const errorMsg = cmdError.message.toLowerCase();
+			} catch (cmdError: unknown) {
+			const errorMessage = cmdError instanceof Error ? cmdError.message : String(cmdError);
+			// Test command failed - removed console.log to reduce console pollution
+			
+			// 对于uPic，即使命令失败也可能是有效的（比如缺少参数）
+			// 检查错误信息来判断是否真的无效
+			if (cmdError instanceof Error && cmdError.message) {
+				const errorMsg = cmdError.message.toLowerCase();
 					const mightBeValid = errorMsg.includes('upic') || 
 									   errorMsg.includes('upload') || 
 									   errorMsg.includes('missing required options') ||

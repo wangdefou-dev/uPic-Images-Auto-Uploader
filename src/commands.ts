@@ -17,7 +17,7 @@ export class CommandManager {
 		this.plugin.addCommand({
 			id: 'upload-selected-image',
 			name: 'Upload selected image via uPic',
-			hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'u' }],
+			// hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'u' }], // Removed default hotkey as recommended
 			editorCallback: (editor: Editor, view: MarkdownView | MarkdownFileInfo) => {
 				this.uploadSelectedImage(editor);
 			}
@@ -27,7 +27,7 @@ export class CommandManager {
 		this.plugin.addCommand({
 			id: 'upload-clipboard-image',
 			name: 'Upload clipboard image via uPic',
-			hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'v' }],
+			// hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 'v' }], // Removed default hotkey as recommended
 			editorCallback: (editor: Editor, view: MarkdownView | MarkdownFileInfo) => {
 				this.uploadClipboardImage(editor);
 			}
@@ -37,7 +37,7 @@ export class CommandManager {
 		this.plugin.addCommand({
 			id: 'upload-all-images',
 			name: 'Upload all local images in current document',
-			hotkeys: [{ modifiers: ['Mod', 'Shift', 'Alt'], key: 'u' }],
+			// hotkeys: [{ modifiers: ['Mod', 'Shift', 'Alt'], key: 'u' }], // Removed default hotkey as recommended
 			editorCallback: (editor: Editor, view: MarkdownView | MarkdownFileInfo) => {
 				this.uploadAllImages(editor);
 			}
@@ -47,7 +47,7 @@ export class CommandManager {
 		this.plugin.addCommand({
 			id: 'toggle-auto-upload',
 			name: 'Toggle auto upload',
-			hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 't' }],
+			// hotkeys: [{ modifiers: ['Mod', 'Shift'], key: 't' }], // Removed default hotkey as recommended
 			callback: () => {
 				this.toggleAutoUpload();
 			}
