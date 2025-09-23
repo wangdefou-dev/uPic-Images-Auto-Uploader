@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-upic-auto-uploader",
+  "name": "uPic Images Auto Uploader",
+  "version": "0.1.0",
+  "minAppVersion": "0.1.0",
+  "description": "Automatically upload images to cloud storage via uPic when pasting into Obsidian",
+  "author": "WangDefou",
+  "authorUrl": "https://github.com/wangdefou-dev",
+  "isDesktopOnly": true
+}
