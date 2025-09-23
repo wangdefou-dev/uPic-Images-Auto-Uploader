@@ -1,58 +1,28 @@
-# Obsidian Plugin PR Submission Guide
+# Obsidian插件提交指南
 
-## PR Template Checklist
+## 🚨 关键问题解决方案
 
-根据官方PR模板，您需要在GitHub PR中填写以下内容：
+你收到"未遵循PR模板"错误的原因可能是：
 
-### 1. 基本信息
-```markdown
-# I am submitting a new Community Plugin
+### 1. PR标题格式错误
+**正确格式**：`Add plugin: uPic Images Auto Uploader`
 
-- [x] I attest that I have done my best to deliver a high-quality plugin, am proud of the code I have written, and would recommend it to others. I commit to maintaining the plugin and being responsive to bug reports. If I am no longer able to maintain it, I will make reasonable efforts to find a successor maintainer or withdraw the plugin from the directory.
+### 2. PR描述不完整
+你需要在PR描述中包含完整的检查清单和插件信息。
 
-## Repo URL
-Link to my plugin: https://github.com/wangdefou-dev/uPic-Images-Auto-Uploader
-```
+### 3. 提交步骤
 
-### 2. Release Checklist
-```markdown
-## Release Checklist
-- [x] I have tested the plugin on
-  - [x] Windows
-  - [x] macOS
-  - [ ] Linux
-  - [ ] Android _(if applicable)_
-  - [ ] iOS _(if applicable)_
-- [x] My GitHub release contains all required files (as individual files, not just in the source.zip / source.tar.gz)
-  - [x] `main.js`
-  - [x] `manifest.json`
-  - [x] `styles.css` _(optional)_
-- [x] GitHub release name matches the exact version number specified in my manifest.json (_**Note:** Use the exact version number, don't include a prefix `v`_)
-- [x] The `id` in my `manifest.json` matches the `id` in the `community-plugins.json` file.
-- [x] My README.md describes the plugin's purpose and provides clear usage instructions.
-- [x] I have read the developer policies at https://docs.obsidian.md/Developer+policies, and have assessed my plugin's adherence to these policies.
-- [x] I have read the tips in https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines and have self-reviewed my plugin to avoid these common pitfalls.
-- [x] I have added a license in the LICENSE file.
-- [x] My project respects and is compatible with the original license of any code from other plugins that I'm using.
-      I have given proper attribution to these other projects in my `README.md`.
-```
+#### 步骤1：Fork仓库
+1. 访问：https://github.com/obsidianmd/obsidian-releases
+2. 点击右上角的 "Fork" 按钮
 
-## 重要提醒
+#### 步骤2：编辑文件
+1. 在你的fork中，打开 `community-plugins.json` 文件
+2. 找到文件末尾的 `]` 符号
+3. 在最后一个插件条目后添加逗号，然后添加：
 
-### 插件ID确认
-- 您的manifest.json中的ID是: `upic-auto-uploader`
-- 在PR中需要将此ID添加到community-plugins.json文件中
-
-### GitHub Release要求
-- ✅ Release名称必须是: `0.1.0` (不带v前缀)
-- ✅ 必须包含三个单独文件: main.js, manifest.json, styles.css
-- ✅ 不能只依赖源码压缩包
-
-### PR提交步骤
-1. Fork obsidianmd/obsidian-releases 仓库
-2. 编辑 community-plugins.json 文件
-3. 在适当位置添加您的插件信息:
 ```json
+,
 {
   "id": "upic-auto-uploader",
   "name": "uPic Images Auto Uploader",
@@ -61,22 +31,28 @@ Link to my plugin: https://github.com/wangdefou-dev/uPic-Images-Auto-Uploader
   "repo": "wangdefou-dev/uPic-Images-Auto-Uploader"
 }
 ```
-4. 创建PR并使用上述模板内容
-5. 确保所有复选框都已正确勾选
 
-### 常见错误避免
-- ❌ 不要在Release名称前加"v"前缀
-- ❌ 不要忘记上传单独的文件作为Release附件
-- ❌ 不要在PR中遗漏任何必需的复选框
-- ❌ 确保插件ID在community-plugins.json中是唯一的
+#### 步骤3：创建PR
+1. 提交更改
+2. 创建Pull Request
+3. **PR标题**：`Add plugin: uPic Images Auto Uploader`
+4. **PR描述**：复制粘贴 `OBSIDIAN_PR_TEMPLATE.md` 中的完整内容
 
-## 当前状态检查
+## ✅ 检查清单
 
-✅ main.js 文件已生成
-✅ manifest.json 配置正确
-✅ styles.css 文件存在
-✅ README.md 内容完整
-✅ LICENSE 文件存在
-✅ 版本号为 0.1.0
+在提交PR前，确保：
 
-您的插件已准备好提交！请按照上述指南创建PR。
+- [ ] GitHub Release名称是 `0.1.0`（不带v前缀）
+- [ ] Release包含 main.js、manifest.json、styles.css 三个单独文件
+- [ ] PR标题格式正确：`Add plugin: uPic Images Auto Uploader`
+- [ ] PR描述包含完整的检查清单
+- [ ] community-plugins.json 格式正确（注意逗号和JSON语法）
+
+## 🔧 常见错误
+
+1. **标题错误**：不要使用 "Submit plugin" 或其他格式
+2. **描述不完整**：必须包含所有检查项
+3. **JSON格式错误**：注意逗号和引号
+4. **Release格式错误**：确保文件是单独上传的，不是压缩包
+
+按照这个指南操作，应该能成功通过所有检查！
