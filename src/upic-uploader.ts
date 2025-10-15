@@ -9,19 +9,30 @@ import { PluginSettings, UploadResult, FileInfo } from './types';
 const execAsync = promisify(exec);
 
 export class UPicUploader {
+	// 静态变量来跟踪全局定期检查状态
+	private static globalCheckInterval: NodeJS.Timeout | null = null;
+	private static isPeriodicCheckRunning: boolean = false;
+	private static instanceCount: number = 0;
+	
 	private plugin: Plugin; // Plugin instance for accessing app and vault
 	private settings: PluginSettings;
 	private detectedUpicPath: string | null = null;
 	private lastCheckTime: number = 0;
-	private checkInterval: number = 30000; // 30秒检查一次
+	private checkInterval: number = 60000; // 增加到60秒检查一次，减少频率
 	private availabilityCache: Map<string, { available: boolean; timestamp: number }> = new Map();
-	private cacheTimeout: number = 60000; // 缓存1分钟
+	private cacheTimeout: number = 300000; // 增加缓存时间到5分钟
 
 	constructor(plugin: Plugin, settings: PluginSettings) {
 		this.plugin = plugin;
 		this.settings = settings;
-		// 启动定期检查
-		this.startPeriodicCheck();
+		
+		// 增加实例计数
+		UPicUploader.instanceCount++;
+		
+		// 只在第一个实例时启动定期检查
+		if (!UPicUploader.isPeriodicCheckRunning) {
+			this.startPeriodicCheck();
+		}
 	}
 
 	/**
@@ -745,10 +756,19 @@ export class UPicUploader {
 	}
 
 	/**
-	 * 启动定期检查
+	 * 启动定期检查（全局单例）
 	 */
 	private startPeriodicCheck(): void {
-		setInterval(() => {
+		// 如果已经在运行，直接返回
+		if (UPicUploader.isPeriodicCheckRunning) {
+			return;
+		}
+		
+		// 标记为正在运行
+		UPicUploader.isPeriodicCheckRunning = true;
+		
+		// 创建全局定时器
+		UPicUploader.globalCheckInterval = setInterval(() => {
 			this.performPeriodicCheck();
 		}, this.checkInterval);
 		
@@ -762,8 +782,17 @@ export class UPicUploader {
 	private async performPeriodicCheck(): Promise<void> {
 		try {
 			const now = Date.now();
-			if (now - this.lastCheckTime < this.checkInterval) {
+			// 增加检查间隔，避免频繁检查
+			if (now - this.lastCheckTime < this.checkInterval * 0.8) {
 				return; // 避免频繁检查
+			}
+			
+			// 只在没有缓存或缓存过期时才进行检查
+			if (this.detectedUpicPath && this.availabilityCache.size > 0) {
+				const cachedResult = this.getCachedAvailability(this.detectedUpicPath);
+				if (cachedResult !== null) {
+					return; // 使用缓存结果，跳过检查
+				}
 			}
 			
 			console.log('🔄 Performing periodic uPic availability check...');
@@ -813,6 +842,31 @@ export class UPicUploader {
 			available,
 			timestamp: Date.now()
 		});
+	}
+
+	/**
+	 * 停止定期检查（全局清理）
+	 */
+	static stopPeriodicCheck(): void {
+		if (UPicUploader.globalCheckInterval) {
+			clearInterval(UPicUploader.globalCheckInterval);
+			UPicUploader.globalCheckInterval = null;
+		}
+		UPicUploader.isPeriodicCheckRunning = false;
+	}
+
+	/**
+	 * 销毁实例
+	 */
+	destroy(): void {
+		// 减少实例计数
+		UPicUploader.instanceCount--;
+		
+		// 如果没有实例了，停止定期检查
+		if (UPicUploader.instanceCount <= 0) {
+			UPicUploader.stopPeriodicCheck();
+			UPicUploader.instanceCount = 0; // 确保不会变成负数
+		}
 	}
 
 	/**

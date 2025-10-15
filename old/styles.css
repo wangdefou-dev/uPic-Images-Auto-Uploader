@@ -1,0 +1,364 @@
+/* Obsidian uPic Auto Uploader Plugin Styles */
+
+/* 设置页面样式 */
+.upic-setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.upic-setting-item:last-child {
+    border-bottom: none;
+}
+
+.upic-setting-item-info {
+    flex: 1;
+    margin-right: 16px;
+}
+
+.upic-setting-item-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: var(--text-normal);
+}
+
+.upic-setting-item-description {
+    font-size: 0.875em;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.upic-setting-item-control {
+    flex-shrink: 0;
+}
+
+/* 输入框样式 */
+.upic-text-input {
+    width: 300px;
+    padding: 8px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 14px;
+}
+
+.upic-text-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+.upic-number-input {
+    width: 100px;
+    padding: 8px 12px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-size: 14px;
+}
+
+.upic-number-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+    box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+/* 切换开关样式 */
+.upic-toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.upic-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.upic-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--background-modifier-border);
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.upic-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: var(--background-primary);
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.upic-toggle input:checked + .upic-toggle-slider {
+    background-color: var(--interactive-accent);
+}
+
+.upic-toggle input:checked + .upic-toggle-slider:before {
+    transform: translateX(20px);
+}
+
+/* 按钮样式 */
+.upic-button {
+    padding: 8px 16px;
+    border: 1px solid var(--interactive-normal);
+    border-radius: 4px;
+    background: var(--interactive-normal);
+    color: var(--text-on-accent);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.upic-button:hover {
+    background: var(--interactive-hover);
+    border-color: var(--interactive-hover);
+}
+
+.upic-button:active {
+    background: var(--interactive-active);
+    border-color: var(--interactive-active);
+}
+
+.upic-button.mod-primary {
+    background: var(--interactive-accent);
+    border-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.upic-button.mod-primary:hover {
+    background: var(--interactive-accent-hover);
+    border-color: var(--interactive-accent-hover);
+}
+
+.upic-button.mod-warning {
+    background: var(--color-orange);
+    border-color: var(--color-orange);
+    color: var(--text-on-accent);
+}
+
+.upic-button.mod-warning:hover {
+    opacity: 0.8;
+}
+
+.upic-button.mod-danger {
+    background: var(--color-red);
+    border-color: var(--color-red);
+    color: var(--text-on-accent);
+}
+
+.upic-button.mod-danger:hover {
+    opacity: 0.8;
+}
+
+/* 按钮组样式 */
+.upic-button-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* 分组标题样式 */
+.upic-setting-group-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text-normal);
+    margin: 24px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--interactive-accent);
+}
+
+.upic-setting-group-title:first-child {
+    margin-top: 0;
+}
+
+/* 描述文本样式 */
+.upic-setting-description {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: var(--background-secondary);
+    border-radius: 4px;
+    border-left: 3px solid var(--interactive-accent);
+}
+
+/* 状态指示器样式 */
+.upic-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.upic-status-indicator.mod-success {
+    background: var(--color-green-rgb);
+    color: var(--color-base-00);
+}
+
+.upic-status-indicator.mod-error {
+    background: var(--color-red-rgb);
+    color: var(--color-base-00);
+}
+
+.upic-status-indicator.mod-warning {
+    background: var(--color-orange-rgb);
+    color: var(--color-base-00);
+}
+
+/* 文件选择器样式 */
+.upic-file-input {
+    display: none;
+}
+
+.upic-file-input-label {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 1px dashed var(--interactive-normal);
+    border-radius: 4px;
+    background: var(--background-secondary);
+    color: var(--text-normal);
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.upic-file-input-label:hover {
+    border-color: var(--interactive-accent);
+    background: var(--background-modifier-hover);
+}
+
+/* 进度条样式 */
+.upic-progress {
+    width: 100%;
+    height: 4px;
+    background: var(--background-modifier-border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.upic-progress-bar {
+    height: 100%;
+    background: var(--interactive-accent);
+    transition: width 0.3s ease;
+    border-radius: 2px;
+}
+
+/* 工具提示样式 */
+.upic-tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+}
+
+.upic-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--background-tooltip);
+    color: var(--text-on-accent);
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    z-index: 1000;
+}
+
+.upic-tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .upic-setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .upic-setting-item-info {
+        margin-right: 0;
+    }
+    
+    .upic-text-input {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .upic-button-group {
+        flex-wrap: wrap;
+    }
+}
+
+/* 暗色主题适配 */
+.theme-dark .upic-setting-description {
+    background: var(--background-primary-alt);
+}
+
+.theme-dark .upic-file-input-label {
+    background: var(--background-primary-alt);
+}
+
+/* 动画效果 */
+@keyframes upic-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.upic-setting-item {
+    animation: upic-fade-in 0.3s ease-out;
+}
+
+/* 焦点样式 */
+.upic-button:focus,
+.upic-text-input:focus,
+.upic-number-input:focus {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+/* 禁用状态 */
+.upic-button:disabled,
+.upic-text-input:disabled,
+.upic-number-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.upic-button:disabled:hover {
+    background: var(--interactive-normal);
+    border-color: var(--interactive-normal);
+}
