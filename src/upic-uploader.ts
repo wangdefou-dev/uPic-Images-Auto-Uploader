@@ -20,7 +20,7 @@ export class UPicUploader {
 	private lastCheckTime: number = 0;
 	private checkInterval: number = 60000; // 增加到60秒检查一次，减少频率
 	private availabilityCache: Map<string, { available: boolean; timestamp: number }> = new Map();
-	private cacheTimeout: number = 300000; // 增加缓存时间到5分钟
+	private cacheTimeout: number = 600000; // 增加缓存时间到10分钟，减少重复检测
 
 	constructor(plugin: Plugin, settings: PluginSettings) {
 		this.plugin = plugin;
@@ -302,7 +302,31 @@ export class UPicUploader {
 	}
 
 	/**
-	 * 测试指定路径的 uPic 是否可用
+	 * 检查是否已有 uPic 进程在运行
+	 * @returns 是否有 uPic 进程运行
+	 */
+	private async isUPicProcessRunning(): Promise<boolean> {
+		try {
+			let command: string;
+			if (process.platform === 'win32') {
+				command = 'tasklist /FI "IMAGENAME eq uPic.exe" /FO CSV | find /C "uPic.exe"';
+			} else {
+				command = 'pgrep -f "uPic" | wc -l';
+			}
+			
+			const { stdout } = await execAsync(command, { timeout: 3000 });
+			const processCount = parseInt(stdout.trim());
+			
+			console.log(`🔍 uPic process check: ${processCount} processes found`);
+			return processCount > 0;
+		} catch (error) {
+			console.log('❌ Failed to check uPic processes:', error);
+			return false;
+		}
+	}
+
+	/**
+	 * 测试指定路径的 uPic 是否可用（不启动 GUI）
 	 * @param path uPic 路径
 	 * @returns 是否可用
 	 */
@@ -319,6 +343,14 @@ export class UPicUploader {
 		if (cachedResult !== null) {
 			console.log(`📋 Using cached result for ${path}: ${cachedResult}`);
 			return cachedResult;
+		}
+
+		// 如果已有 uPic 进程在运行，跳过检测以避免启动新进程
+		const isRunning = await this.isUPicProcessRunning();
+		if (isRunning) {
+			console.log(`✅ uPic process already running, assuming path is valid: ${path}`);
+			this.setCachedAvailability(path, true);
+			return true;
 		}
 		
 		try {
@@ -351,61 +383,59 @@ export class UPicUploader {
 				}
 			}
 
-			// 按优先级尝试多个测试命令
+			// 只使用安全的测试命令，避免启动 GUI
 			const testCommands = [
-				'--help',
-				'--version', 
-				'-h',
-				'-v'
+				'--version',  // 最安全的命令，通常不会启动 GUI
+				'--help'      // 备用命令
 			];
 
 			for (const flag of testCommands) {
 				try {
 					const command = expandedPath.includes(' ') ? `"${expandedPath}" ${flag}` : `${expandedPath} ${flag}`;
-					console.log(`🧪 Testing with command: ${command}`);
+					console.log(`🧪 Testing with safe command: ${command}`);
 					
 					const { stdout, stderr } = await execAsync(command, {
-					timeout: 5000,
-					encoding: 'utf8'
-				});
+						timeout: 3000,  // 减少超时时间
+						encoding: 'utf8'
+					});
 				
-				const output = (stdout + stderr).toLowerCase();
-				console.log(`📄 Command output: ${output.substring(0, 200)}...`);
+					const output = (stdout + stderr).toLowerCase();
+					console.log(`📄 Command output: ${output.substring(0, 100)}...`);
 				
-				// 扩展关键词检测
-				const keywords = [
-					'upic', 'upload', 'image', 'picture', 'photo',
-					'usage:', 'options:', 'commands:', 'help:',
-					'version', 'copyright', 'author'
-				];
+					// 更严格的关键词检测，专门针对 uPic
+					const upicKeywords = [
+						'upic', 'upload', 'image uploader',
+						'version', 'usage:', 'options:'
+					];
 				
-				const hasKeyword = keywords.some(keyword => output.includes(keyword));
-				if (hasKeyword) {
-					console.log(`✅ uPic detected with command: ${flag}`);
-					this.setCachedAvailability(path, true);
-					return true;
-				}
+					const hasUpicKeyword = upicKeywords.some(keyword => output.includes(keyword));
+					if (hasUpicKeyword) {
+						console.log(`✅ uPic detected with safe command: ${flag}`);
+						this.setCachedAvailability(path, true);
+						return true;
+					}
 				
 			} catch (cmdError: unknown) {
 			const errorMessage = cmdError instanceof Error ? cmdError.message : String(cmdError);
 			// Test command failed - removed console.log to reduce console pollution
 			
-			// 对于uPic，即使命令失败也可能是有效的（比如缺少参数）
-			// 检查错误信息来判断是否真的无效
+			// 对于uPic，检查错误信息来判断是否是有效的 uPic 程序
 			if (cmdError instanceof Error && cmdError.message) {
 				const errorMsg = cmdError.message.toLowerCase();
-					const mightBeValid = errorMsg.includes('upic') || 
-									   errorMsg.includes('upload') || 
-									   errorMsg.includes('missing required options') ||
-									   errorMsg.includes('usage') ||
-									   errorMsg.includes('help');
+				// 更严格的错误信息检查，只有明确的 uPic 相关错误才认为有效
+				const isValidUpicError = errorMsg.includes('upic') && (
+					errorMsg.includes('missing required options') ||
+					errorMsg.includes('usage') ||
+					errorMsg.includes('help') ||
+					errorMsg.includes('command not found') === false
+				);
 					
-					if (mightBeValid) {
-						console.log(`✅ uPic detected via error message with command: ${flag}`);
-						this.setCachedAvailability(path, true);
-						return true;
-					}
+				if (isValidUpicError) {
+					console.log(`✅ uPic detected via error message with command: ${flag}`);
+					this.setCachedAvailability(path, true);
+					return true;
 				}
+			}
 				continue;
 			}
 			}
@@ -777,7 +807,7 @@ export class UPicUploader {
 	}
 	
 	/**
-	 * 执行定期检查
+	 * 执行定期检查（优化版，避免启动新进程）
 	 */
 	private async performPeriodicCheck(): Promise<void> {
 		try {
@@ -785,6 +815,14 @@ export class UPicUploader {
 			// 增加检查间隔，避免频繁检查
 			if (now - this.lastCheckTime < this.checkInterval * 0.8) {
 				return; // 避免频繁检查
+			}
+			
+			// 首先检查是否已有 uPic 进程运行
+			const isRunning = await this.isUPicProcessRunning();
+			if (isRunning) {
+				console.log('✅ uPic process detected, skipping detailed check');
+				this.lastCheckTime = now;
+				return; // 如果已有进程运行，跳过详细检查
 			}
 			
 			// 只在没有缓存或缓存过期时才进行检查
@@ -819,14 +857,21 @@ export class UPicUploader {
 	}
 	
 	/**
-	 * 检查缓存中的可用性
+	 * 获取缓存的可用性结果（增强版）
+	 * @param path 路径
+	 * @returns 缓存的结果，如果没有缓存或已过期则返回 null
 	 */
 	private getCachedAvailability(path: string): boolean | null {
 		const cached = this.availabilityCache.get(path);
-		if (!cached) return null;
+		if (!cached) {
+			return null;
+		}
 		
 		const now = Date.now();
-		if (now - cached.timestamp > this.cacheTimeout) {
+		// 如果缓存结果为 true（可用），延长缓存时间
+		const effectiveTimeout = cached.available ? this.cacheTimeout * 2 : this.cacheTimeout;
+		
+		if (now - cached.timestamp > effectiveTimeout) {
 			this.availabilityCache.delete(path);
 			return null;
 		}
